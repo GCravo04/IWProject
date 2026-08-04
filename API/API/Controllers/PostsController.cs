@@ -30,6 +30,7 @@ public class PostsController : ControllerBase
             .OrderByDescending(p => p.CreatedAt)
             .Select(p => new PostDto
             {
+                UserId = p.UserId,
                 PostId = p.PostId,
                 Username = p.User.Username,
                 Content = p.Content,
@@ -54,6 +55,7 @@ public class PostsController : ControllerBase
             .Where(p => p.PostId == id)
             .Select(p => new PostDto
             {
+                UserId = p.UserId,
                 PostId = p.PostId,
                 Username = p.User.Username,
                 Content = p.Content,
