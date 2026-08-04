@@ -1,0 +1,128 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #f5f6fa;
+    font-family: "Segoe UI", sans-serif;
+}
+
+.navbar {
+    height: 70px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0 40px;
+
+    background: #fff;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    position: sticky;
+    top: 0;
+
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 1.7rem;
+    font-weight: bold;
+
+    color: #2563eb;
+
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.nav-links a {
+    text-decoration: none;
+
+    color: #444;
+
+    font-size: 1rem;
+    font-weight: 500;
+
+    transition: .2s;
+}
+
+.nav-links a:hover {
+    color: #2563eb;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.login-btn {
+    text-decoration: none;
+
+    color: #2563eb;
+
+    font-weight: 600;
+}
+
+.register-btn {
+    background: #2563eb;
+
+    color: white;
+
+    text-decoration: none;
+
+    padding: 10px 18px;
+
+    border-radius: 8px;
+
+    transition: .2s;
+}
+
+.register-btn:hover {
+    background: #1d4ed8;
+}
+
+.profile-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    text-decoration: none;
+
+    color: #333;
+}
+
+.profile-link img {
+    width: 42px;
+    height: 42px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+}
+
+.logout-btn {
+    background: transparent;
+
+    border: 1px solid #ddd;
+
+    padding: 8px 15px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.logout-btn:hover {
+    background: #f3f4f6;
+}
