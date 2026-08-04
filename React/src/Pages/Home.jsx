@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getPosts } from "../api/posts";
+//import { getPosts } from "../api/posts";
 
 function Home() {
 

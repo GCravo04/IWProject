@@ -1,50 +1,69 @@
 import { useState } from "react";
-import { register } from "../api/auth";
 
-export default function Register() {
+function Register() {
+
     const [username, setUsername] = useState("");
+
     const [email, setEmail] = useState("");
+
     const [password, setPassword] = useState("");
 
-    async function handleRegister(e) {
+    function handleSubmit(e) {
+
         e.preventDefault();
 
-        try {
-            const result = await register(username, email, password);
-            console.log(result);
-            alert("Registo efetuado!");
-        } catch (err) {
-            console.log(err);
-            alert("Erro");
-        }
+        console.log(username);
+
+        console.log(email);
+
+        console.log(password);
+
     }
 
     return (
-        <form onSubmit={handleRegister}>
-            <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-            />
 
-            <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
+        <div className="login-page">
 
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
+            <div className="login-card">
 
-            <button type="submit">
-                Register
-            </button>
-        </form>
+                <h1>Criar Conta</h1>
+
+                <form onSubmit={handleSubmit}>
+
+                    <input
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+
+                    <input
+                        type="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+
+                    <button>
+
+                        Registar
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
     );
+
 }
+
+export default Register;
