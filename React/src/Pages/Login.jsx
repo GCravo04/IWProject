@@ -1,66 +1,63 @@
 import { useState } from "react";
+import { login } from "../api/auth";
 
-function Login() {
+export default function Login() {
 
     const [email, setEmail] = useState("");
 
     const [password, setPassword] = useState("");
 
-    function handleSubmit(e) {
+    async function handleLogin(e) {
+
         e.preventDefault();
 
-        console.log(email);
-        console.log(password);
+       try {
+
+    const result = await login(email, password);
+
+    console.log(result);
+
+    localStorage.setItem("token", result.token);
+
+    console.log("Token guardado:", localStorage.getItem("token"));
+
+    alert("Login efetuado!");
+
+}
+catch (err) {
+
+    console.log(err);
+
+    alert("Erro");
+    }
     }
 
     return (
 
-        <div className="login-page">
+        <form onSubmit={handleLogin}>
 
-            <div className="login-card">
+            <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+            />
 
-                <h1>Login</h1>
+            <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+            />
 
-                <form onSubmit={handleSubmit}>
+            <button>
 
-                    <div className="form-group">
+                Login
 
-                        <label>Email</label>
+            </button>
 
-                        <input
-                            type="email"
-                            placeholder="Introduz o teu email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-
-                    </div>
-
-                    <div className="form-group">
-
-                        <label>Password</label>
-
-                        <input
-                            type="password"
-                            placeholder="Introduz a tua password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-
-                    </div>
-
-                    <button type="submit">
-                        Entrar
-                    </button>
-
-                </form>
-
-            </div>
-
-        </div>
+        </form>
 
     );
 
 }
-
-export default Login;

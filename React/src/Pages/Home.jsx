@@ -1,73 +1,111 @@
-import { useEffect, useState } from "react";
-//import { getPosts } from "../api/posts";
+import "../Css/Home.css";
 
 function Home() {
-
-    const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-
-        async function loadPosts() {
-
-            try {
-
-                const response = await getPosts();
-
-                console.log(response.data);
-
-                setPosts(response.data);
-
-            }
-            catch (err) {
-
-                console.error(err);
-
-            }
-            finally {
-
-                setLoading(false);
-
-            }
-        }
-
-        loadPosts();
-
-    }, []);
-
-    if (loading)
-        return <h2>A carregar...</h2>;
-
     return (
-        <div style={{ padding: "30px" }}>
+        <div className="home">
 
-            <h1>Posts da API</h1>
+            <aside className="left-sidebar">
+                <h2>Social</h2>
 
-            <hr />
+                <ul>
+                    <li>🏠 Home</li>
+                    <li>👤 Perfil</li>
+                    <li>⚙️ Definições</li>
+                </ul>
+            </aside>
 
-            {posts.length === 0 ? (
-                <p>Não existem posts.</p>
-            ) : (
-                posts.map(post => (
-                    <div
-                        key={post.postId}
-                        style={{
-                            border: "1px solid #ccc",
-                            padding: "15px",
-                            marginBottom: "15px",
-                            borderRadius: "10px"
-                        }}
-                    >
-                        <h3>{post.user?.userName}</h3>
+            <main className="feed">
 
-                        <p>{post.content}</p>
+                <div className="create-post">
 
-                        <small>
-                            {new Date(post.createdAt).toLocaleString()}
-                        </small>
+                    <textarea
+                        placeholder="O que estás a pensar?"
+                    ></textarea>
+
+                    <button>
+                        Publicar
+                    </button>
+
+                </div>
+
+                <div className="post">
+
+                    <div className="post-header">
+
+                        <img
+                            src="https://placehold.co/45"
+                            alt=""
+                        />
+
+                        <div>
+
+                            <h3>Teste</h3>
+
+                            <span>há 3 minutos</span>
+
+                        </div>
+
                     </div>
-                ))
-            )}
+
+                    <p>
+                        Este é o meu primeiro post feito em React 
+                    </p>
+
+                    <div className="post-actions">
+
+                        <button>
+                            
+                        </button>
+
+                        <button>
+                           
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div className="post">
+
+                </div>
+
+            </main>
+
+            <aside className="right-sidebar">
+
+                <h3>Quem seguir</h3>
+
+                <div className="suggestion">
+
+                    <span>João</span>
+
+                    <button>
+                        Seguir
+                    </button>
+
+                </div>
+
+                <div className="suggestion">
+
+                    <span>Ana</span>
+
+                    <button>
+                        Seguir
+                    </button>
+
+                </div>
+
+                <div className="suggestion">
+
+                    <span>Pedro</span>
+
+                    <button>
+                        Seguir
+                    </button>
+
+                </div>
+
+            </aside>
 
         </div>
     );
