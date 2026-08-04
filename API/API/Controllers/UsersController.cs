@@ -57,7 +57,7 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
-    // GET: api/users/profile
+    // GET: api/User/profile
     [Authorize]
     [HttpGet("profile")]
     public async Task<ActionResult<UserDto>> GetProfile()
@@ -70,8 +70,16 @@ public class UsersController : ControllerBase
             {
                 UserId = u.UserId,
                 Username = u.Username,
+                Email = u.Email,
                 Bio = u.Bio,
-                ProfileImageUrl = u.ProfileImageUrl
+                ProfileImageUrl = u.ProfileImageUrl,
+                CreatedAt = u.CreatedAt,
+
+                Posts = u.Posts.Count(),
+
+                Followers = u.Followers.Count(),
+
+                Following = u.Following.Count()
             })
             .FirstOrDefaultAsync();
 
@@ -86,7 +94,7 @@ public class UsersController : ControllerBase
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile(UpdateUserDto dto)
     {
-        var id = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var id = int.Parse(User.FindFirstValue("userid")!);
 
         var user = await _context.Users.FindAsync(id);
 
