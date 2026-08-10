@@ -12,18 +12,6 @@ function NavBar() {
                 Social
             </Link>
 
-            <div className="nav-links">
-
-                <Link to="/">Home</Link>
-
-                {token && (
-                    <Link to="/profile">
-                        Perfil
-                    </Link>
-                )}
-
-            </div>
-
             <div className="nav-right">
 
                 {!token ? (
