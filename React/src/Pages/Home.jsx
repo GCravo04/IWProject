@@ -1,83 +1,472 @@
+import { useEffect, useState } from "react";
 import "../Css/Home.css";
 
+import { getPosts, createPost, updatePost, deletePost } from "../API/post";
+import { getProfile } from "../API/users";
+
+import { Link } from "react-router-dom";
+
 function Home() {
+
+    const [posts, setPosts] = useState([]);
+    const [currentUserId, setCurrentUserId] = useState(null);
+
+    const [content, setContent] = useState("");
+
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const [editingPostId, setEditingPostId] = useState(null);
+    const [editingContent, setEditingContent] = useState("");
+
+
+    // ========================================
+    // CARREGAR POSTS + UTILIZADOR
+    // ========================================
+
+    useEffect(() => {
+
+        async function loadData() {
+
+            try {
+
+                const [postsData, profileData] = await Promise.all([
+                    getPosts(),
+                    getProfile()
+                ]);
+
+                setPosts(postsData);
+
+                setCurrentUserId(profileData.userId);
+
+                console.log("User logged in:", profileData);
+                console.log("Posts:", postsData);
+
+            } catch (error) {
+
+                console.error("Erro ao carregar dados:", error);
+
+                setError(
+                    "Não foi possível carregar os dados."
+                );
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        }
+
+        loadData();
+
+    }, []);
+
+
+    // ========================================
+    // CRIAR POST
+    // ========================================
+
+    async function handleCreatePost() {
+
+        if (!content.trim()) {
+            return;
+        }
+
+        try {
+
+            const newPost = await createPost({
+                content: content
+            });
+
+            setContent("");
+
+            // Recarregar posts para garantir
+            // que temos os dados vindos da API
+
+            const postsData = await getPosts();
+
+            setPosts(postsData);
+
+        } catch (error) {
+
+            console.error("Erro ao criar post:", error);
+
+            setError(
+                "Não foi possível criar o post."
+            );
+
+        }
+
+    }
+
+
+    // ========================================
+    // EDITAR POST
+    // ========================================
+
+    function handleStartEdit(post) {
+
+        setEditingPostId(post.postId);
+        setEditingContent(post.content);
+
+    }
+
+
+    async function handleSaveEdit(postId) {
+
+        if (!editingContent.trim()) {
+            return;
+        }
+
+        try {
+
+            await updatePost(postId, {
+                content: editingContent
+            });
+
+            setEditingPostId(null);
+            setEditingContent("");
+
+            // Atualizar lista
+
+            const postsData = await getPosts();
+
+            setPosts(postsData);
+
+        } catch (error) {
+
+            console.error("Erro ao editar post:", error);
+
+            setError(
+                "Não foi possível editar o post."
+            );
+
+        }
+
+    }
+
+
+    // ========================================
+    // APAGAR POST
+    // ========================================
+
+    async function handleDeletePost(postId) {
+
+        const confirmDelete = window.confirm(
+            "Tens a certeza que queres apagar este post?"
+        );
+
+        if (!confirmDelete) {
+            return;
+        }
+
+        try {
+
+            await deletePost(postId);
+
+            // Remover imediatamente da lista
+
+            setPosts(
+                posts.filter(
+                    post => post.postId !== postId
+                )
+            );
+
+        } catch (error) {
+
+            console.error("Erro ao apagar post:", error);
+
+            setError(
+                "Não foi possível apagar o post."
+            );
+
+        }
+
+    }
+
+
     return (
+
         <div className="home">
 
+
+            {/* ========================================
+                LEFT SIDEBAR
+            ======================================== */}
+
             <aside className="left-sidebar">
+
                 <h2>Social</h2>
 
                 <ul>
-                    <li>🏠 Home</li>
-                    <li>👤 Perfil</li>
-                    <li>⚙️ Definições</li>
+
+                    <li>
+                        <Link to="/">
+                            🏠 Home
+                        </Link>
+                    </li>
+
+                    <li>
+                        <Link to="/profile">
+                            👤 Perfil
+                        </Link>
+                    </li>
+
+                    <li>
+                        <Link to="/settings">
+                            ⚙️ Definições
+                        </Link>
+                    </li>
+
                 </ul>
+
             </aside>
 
+
+            {/* ========================================
+                FEED
+            ======================================== */}
+
             <main className="feed">
+
+
+                {/* CRIAR POST */}
 
                 <div className="create-post">
 
                     <textarea
+                        value={content}
+                        onChange={(e) =>
+                            setContent(e.target.value)
+                        }
                         placeholder="O que estás a pensar?"
-                    ></textarea>
+                    />
 
-                    <button>
+                    <button
+                        onClick={handleCreatePost}
+                    >
                         Publicar
                     </button>
 
                 </div>
 
-                <div className="post">
 
-                    <div className="post-header">
+                {/* ERRO */}
 
-                        <img
-                            src="https://placehold.co/45"
-                            alt=""
-                        />
+                {error && (
 
-                        <div>
+                    <p className="error">
+                        {error}
+                    </p>
 
-                            <h3>Teste</h3>
+                )}
 
-                            <span>há 3 minutos</span>
+
+                {/* LOADING */}
+
+                {loading && (
+
+                    <p>
+                        A carregar posts...
+                    </p>
+
+                )}
+
+
+                {/* SEM POSTS */}
+
+                {!loading &&
+                    !error &&
+                    posts.length === 0 && (
+
+                        <p>
+                            Ainda não existem posts.
+                        </p>
+
+                    )
+                }
+
+
+                {/* ========================================
+                    POSTS
+                ======================================== */}
+
+                {posts.map((post) => (
+
+                    <div
+                        className="post"
+                        key={post.postId}
+                    >
+
+
+                        {/* POST HEADER */}
+
+                        <div className="post-header">
+
+                            <img
+                                src={
+                                    post.imageUrl ||
+                                    "https://placehold.co/45"
+                                }
+                                alt=""
+                            />
+
+                            <div>
+
+                                <h3>
+                                    {post.username}
+                                </h3>
+
+                                <span>
+                                    {new Date(
+                                        post.createdAt
+                                    ).toLocaleString("pt-PT")}
+                                </span>
+
+                            </div>
+
+
+                            {/* =================================
+                                EDIT / DELETE
+                            ================================= */}
+
+                            {post.userId === currentUserId && (
+
+                                <div className="post-owner-actions">
+
+                                    <button
+                                        onClick={() =>
+                                            handleStartEdit(post)
+                                        }
+                                    >
+                                        ✏️
+                                    </button>
+
+                                    <button
+                                        onClick={() =>
+                                            handleDeletePost(
+                                                post.postId
+                                            )
+                                        }
+                                    >
+                                        🗑️
+                                    </button>
+
+                                </div>
+
+                            )}
+
+                        </div>
+
+
+                        {/* ========================================
+                            EDITAR POST
+                        ======================================== */}
+
+                        {editingPostId === post.postId ? (
+
+                            <div className="edit-post">
+
+                                <textarea
+                                    value={editingContent}
+                                    onChange={(e) =>
+                                        setEditingContent(
+                                            e.target.value
+                                        )
+                                    }
+                                />
+
+                                <div>
+
+                                    <button
+                                        onClick={() =>
+                                            handleSaveEdit(
+                                                post.postId
+                                            )
+                                        }
+                                    >
+                                        Guardar
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+
+                                            setEditingPostId(null);
+                                            setEditingContent("");
+
+                                        }}
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        ) : (
+
+                            <p>
+                                {post.content}
+                            </p>
+
+                        )}
+
+
+                        {/* ========================================
+                            IMAGEM
+                        ======================================== */}
+
+                        {post.imageUrl && (
+
+                            <img
+                                className="post-image"
+                                src={post.imageUrl}
+                                alt="Imagem do post"
+                            />
+
+                        )}
+
+
+                        {/* ========================================
+                            ACTIONS
+                        ======================================== */}
+
+                        <div className="post-actions">
+
+                            <button>
+                                ❤️ {post.likes}
+                            </button>
+
+                            <button>
+                                💬 {post.comments}
+                            </button>
 
                         </div>
 
                     </div>
 
-                    <p>
-                        Este é o meu primeiro post feito em React 
-                    </p>
-
-                    <div className="post-actions">
-
-                        <button>
-                            
-                        </button>
-
-                        <button>
-                           
-                        </button>
-
-                    </div>
-
-                </div>
-
-                <div className="post">
-
-                </div>
+                ))}
 
             </main>
 
+
+            {/* ========================================
+                RIGHT SIDEBAR
+            ======================================== */}
+
             <aside className="right-sidebar">
 
-                <h3>Quem seguir</h3>
+                <h3>
+                    Quem seguir
+                </h3>
+
 
                 <div className="suggestion">
 
-                    <span>João</span>
+                    <span>
+                        João
+                    </span>
 
                     <button>
                         Seguir
@@ -85,9 +474,12 @@ function Home() {
 
                 </div>
 
+
                 <div className="suggestion">
 
-                    <span>Ana</span>
+                    <span>
+                        Ana
+                    </span>
 
                     <button>
                         Seguir
@@ -95,9 +487,12 @@ function Home() {
 
                 </div>
 
+
                 <div className="suggestion">
 
-                    <span>Pedro</span>
+                    <span>
+                        Pedro
+                    </span>
 
                     <button>
                         Seguir
@@ -107,8 +502,11 @@ function Home() {
 
             </aside>
 
+
         </div>
+
     );
+
 }
 
 export default Home;
