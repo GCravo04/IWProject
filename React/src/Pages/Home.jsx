@@ -1,44 +1,53 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-
 import "../Css/Home.css";
 
-import { getPosts, createPost } from "../API/post";
+import { getPosts, createPost, updatePost, deletePost } from "../API/post";
+import { getProfile } from "../API/users";
+
+import { Link } from "react-router-dom";
 
 function Home() {
 
     const [posts, setPosts] = useState([]);
+    const [currentUserId, setCurrentUserId] = useState(null);
+
+    const [content, setContent] = useState("");
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const [content, setContent] = useState("");
-    const [publishing, setPublishing] = useState(false);
+    const [editingPostId, setEditingPostId] = useState(null);
+    const [editingContent, setEditingContent] = useState("");
 
 
-    // =========================
-    // CARREGAR POSTS
-    // =========================
+    // ========================================
+    // CARREGAR POSTS + UTILIZADOR
+    // ========================================
 
     useEffect(() => {
 
-        async function loadPosts() {
+        async function loadData() {
 
             try {
 
-                const data = await getPosts();
+                const [postsData, profileData] = await Promise.all([
+                    getPosts(),
+                    getProfile()
+                ]);
 
-                setPosts(data);
+                setPosts(postsData);
+
+                setCurrentUserId(profileData.userId);
+
+                console.log("User logged in:", profileData);
+                console.log("Posts:", postsData);
 
             } catch (error) {
 
-                console.error(
-                    "Erro ao carregar posts:",
-                    error
-                );
+                console.error("Erro ao carregar dados:", error);
 
                 setError(
-                    "Não foi possível carregar os posts."
+                    "Não foi possível carregar os dados."
                 );
 
             } finally {
@@ -49,14 +58,14 @@ function Home() {
 
         }
 
-        loadPosts();
+        loadData();
 
     }, []);
 
 
-    // =========================
+    // ========================================
     // CRIAR POST
-    // =========================
+    // ========================================
 
     async function handleCreatePost() {
 
@@ -66,34 +75,111 @@ function Home() {
 
         try {
 
-            setPublishing(true);
-            setError("");
-
             const newPost = await createPost({
-                content: content.trim()
+                content: content
             });
-
-            setPosts((currentPosts) => [
-                newPost,
-                ...currentPosts
-            ]);
 
             setContent("");
 
+            // Recarregar posts para garantir
+            // que temos os dados vindos da API
+
+            const postsData = await getPosts();
+
+            setPosts(postsData);
+
         } catch (error) {
 
-            console.error(
-                "Erro ao criar post:",
-                error
-            );
+            console.error("Erro ao criar post:", error);
 
             setError(
-                "Não foi possível publicar o post."
+                "Não foi possível criar o post."
             );
 
-        } finally {
+        }
 
-            setPublishing(false);
+    }
+
+
+    // ========================================
+    // EDITAR POST
+    // ========================================
+
+    function handleStartEdit(post) {
+
+        setEditingPostId(post.postId);
+        setEditingContent(post.content);
+
+    }
+
+
+    async function handleSaveEdit(postId) {
+
+        if (!editingContent.trim()) {
+            return;
+        }
+
+        try {
+
+            await updatePost(postId, {
+                content: editingContent
+            });
+
+            setEditingPostId(null);
+            setEditingContent("");
+
+            // Atualizar lista
+
+            const postsData = await getPosts();
+
+            setPosts(postsData);
+
+        } catch (error) {
+
+            console.error("Erro ao editar post:", error);
+
+            setError(
+                "Não foi possível editar o post."
+            );
+
+        }
+
+    }
+
+
+    // ========================================
+    // APAGAR POST
+    // ========================================
+
+    async function handleDeletePost(postId) {
+
+        const confirmDelete = window.confirm(
+            "Tens a certeza que queres apagar este post?"
+        );
+
+        if (!confirmDelete) {
+            return;
+        }
+
+        try {
+
+            await deletePost(postId);
+
+            // Remover imediatamente da lista
+
+            setPosts(
+                posts.filter(
+                    post => post.postId !== postId
+                )
+            );
+
+        } catch (error) {
+
+            console.error("Erro ao apagar post:", error);
+
+            setError(
+                "Não foi possível apagar o post."
+            );
 
         }
 
@@ -105,9 +191,9 @@ function Home() {
         <div className="home">
 
 
-            {/* =========================
+            {/* ========================================
                 LEFT SIDEBAR
-            ========================= */}
+            ======================================== */}
 
             <aside className="left-sidebar">
 
@@ -138,46 +224,35 @@ function Home() {
             </aside>
 
 
-            {/* =========================
+            {/* ========================================
                 FEED
-            ========================= */}
+            ======================================== */}
 
             <main className="feed">
 
 
-                {/* =========================
-                    CREATE POST
-                ========================= */}
+                {/* CRIAR POST */}
 
                 <div className="create-post">
 
                     <textarea
-                        placeholder="O que estás a pensar?"
                         value={content}
                         onChange={(e) =>
                             setContent(e.target.value)
                         }
+                        placeholder="O que estás a pensar?"
                     />
 
                     <button
                         onClick={handleCreatePost}
-                        disabled={
-                            publishing ||
-                            !content.trim()
-                        }
                     >
-                        {publishing
-                            ? "A publicar..."
-                            : "Publicar"
-                        }
+                        Publicar
                     </button>
 
                 </div>
 
 
-                {/* =========================
-                    ERROR
-                ========================= */}
+                {/* ERRO */}
 
                 {error && (
 
@@ -188,9 +263,7 @@ function Home() {
                 )}
 
 
-                {/* =========================
-                    LOADING
-                ========================= */}
+                {/* LOADING */}
 
                 {loading && (
 
@@ -201,9 +274,7 @@ function Home() {
                 )}
 
 
-                {/* =========================
-                    NO POSTS
-                ========================= */}
+                {/* SEM POSTS */}
 
                 {!loading &&
                     !error &&
@@ -217,9 +288,9 @@ function Home() {
                 }
 
 
-                {/* =========================
+                {/* ========================================
                     POSTS
-                ========================= */}
+                ======================================== */}
 
                 {posts.map((post) => (
 
@@ -235,7 +306,7 @@ function Home() {
 
                             <img
                                 src={
-                                    post.profileImageUrl ||
+                                    post.imageUrl ||
                                     "https://placehold.co/45"
                                 }
                                 alt=""
@@ -250,24 +321,101 @@ function Home() {
                                 <span>
                                     {new Date(
                                         post.createdAt
-                                    ).toLocaleString(
-                                        "pt-PT"
-                                    )}
+                                    ).toLocaleString("pt-PT")}
                                 </span>
 
                             </div>
 
+
+                            {/* =================================
+                                EDIT / DELETE
+                            ================================= */}
+
+                            {post.userId === currentUserId && (
+
+                                <div className="post-owner-actions">
+
+                                    <button
+                                        onClick={() =>
+                                            handleStartEdit(post)
+                                        }
+                                    >
+                                        ✏️
+                                    </button>
+
+                                    <button
+                                        onClick={() =>
+                                            handleDeletePost(
+                                                post.postId
+                                            )
+                                        }
+                                    >
+                                        🗑️
+                                    </button>
+
+                                </div>
+
+                            )}
+
                         </div>
 
 
-                        {/* POST CONTENT */}
+                        {/* ========================================
+                            EDITAR POST
+                        ======================================== */}
 
-                        <p>
-                            {post.content}
-                        </p>
+                        {editingPostId === post.postId ? (
+
+                            <div className="edit-post">
+
+                                <textarea
+                                    value={editingContent}
+                                    onChange={(e) =>
+                                        setEditingContent(
+                                            e.target.value
+                                        )
+                                    }
+                                />
+
+                                <div>
+
+                                    <button
+                                        onClick={() =>
+                                            handleSaveEdit(
+                                                post.postId
+                                            )
+                                        }
+                                    >
+                                        Guardar
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+
+                                            setEditingPostId(null);
+                                            setEditingContent("");
+
+                                        }}
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        ) : (
+
+                            <p>
+                                {post.content}
+                            </p>
+
+                        )}
 
 
-                        {/* POST IMAGE */}
+                        {/* ========================================
+                            IMAGEM
+                        ======================================== */}
 
                         {post.imageUrl && (
 
@@ -280,7 +428,9 @@ function Home() {
                         )}
 
 
-                        {/* POST ACTIONS */}
+                        {/* ========================================
+                            ACTIONS
+                        ======================================== */}
 
                         <div className="post-actions">
 
@@ -298,17 +448,19 @@ function Home() {
 
                 ))}
 
-
             </main>
 
 
-            {/* =========================
+            {/* ========================================
                 RIGHT SIDEBAR
-            ========================= */}
+            ======================================== */}
 
             <aside className="right-sidebar">
 
-                <h3>Quem seguir</h3>
+                <h3>
+                    Quem seguir
+                </h3>
+
 
                 <div className="suggestion">
 
@@ -322,6 +474,7 @@ function Home() {
 
                 </div>
 
+
                 <div className="suggestion">
 
                     <span>
@@ -333,6 +486,7 @@ function Home() {
                     </button>
 
                 </div>
+
 
                 <div className="suggestion">
 
