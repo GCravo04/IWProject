@@ -1,63 +1,127 @@
 import { useState } from "react";
 import { login } from "../api/auth";
+import "../Css/Auth.css";
+import { Link } from "react-router-dom";
 
 export default function Login() {
 
     const [email, setEmail] = useState("");
-
     const [password, setPassword] = useState("");
 
     async function handleLogin(e) {
 
         e.preventDefault();
 
-       try {
+        try {
 
-    const result = await login(email, password);
+            const result = await login(email, password);
 
-    console.log(result);
+            console.log(result);
 
-    localStorage.setItem("token", result.token);
+            localStorage.setItem("token", result.token);
 
-    console.log("Token guardado:", localStorage.getItem("token"));
+            console.log(
+                "Token guardado:",
+                localStorage.getItem("token")
+            );
 
-    alert("Login efetuado!");
+            alert("Login efetuado!");
 
-}
-catch (err) {
+        } catch (err) {
 
-    console.log(err);
+            console.log(err);
 
-    alert("Erro");
-    }
+            alert("Email ou password incorretos.");
+        }
     }
 
     return (
 
-        <form onSubmit={handleLogin}>
+        <div className="auth-container">
 
-            <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
+            <Link
+                to="/"
+                className="back-home-button"
+            >
+                ← Voltar à página inicial
+            </Link>
 
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
+            <div className="auth-page">
 
-            <button>
+                <div className="auth-card">
 
-                Login
+                    <div className="auth-header">
 
-            </button>
+                        <h1>Social</h1>
 
-        </form>
+                        <p>
+                            Entra na tua conta
+                        </p>
+
+                    </div>
+
+                    <form
+                        className="auth-form"
+                        onSubmit={handleLogin}
+                    >
+
+                        <div className="form-group">
+
+                            <label>Email</label>
+
+                            <input
+                                type="email"
+                                placeholder="O teu email"
+                                value={email}
+                                onChange={(e) =>
+                                    setEmail(e.target.value)
+                                }
+                                required
+                            />
+
+                        </div>
+
+                        <div className="form-group">
+
+                            <label>Password</label>
+
+                            <input
+                                type="password"
+                                placeholder="A tua password"
+                                value={password}
+                                onChange={(e) =>
+                                    setPassword(e.target.value)
+                                }
+                                required
+                            />
+
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="auth-button"
+                        >
+                            Entrar
+                        </button>
+
+                    </form>
+
+                    <p className="auth-footer">
+
+                        Ainda não tens conta?
+
+                        <a href="/register">
+                            Regista-te
+                        </a>
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
 
     );
-
 }
+
