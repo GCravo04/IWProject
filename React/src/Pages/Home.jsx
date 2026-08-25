@@ -1,10 +1,20 @@
 import { useEffect, useState } from "react";
 import "../Css/Home.css";
 
-import { getPosts, createPost, updatePost, deletePost } from "../API/post";
+import {
+    getPosts,
+    createPost,
+    updatePost,
+    deletePost,
+    toggleLike,
+    getComments,
+    createComment
+} from "../API/post";
 import { getProfile } from "../API/users";
 
 import { Link } from "react-router-dom";
+
+const POSTS_PER_PAGE = 5;
 
 function Home() {
 
@@ -18,6 +28,11 @@ function Home() {
 
     const [editingPostId, setEditingPostId] = useState(null);
     const [editingContent, setEditingContent] = useState("");
+    const [commentsByPost, setCommentsByPost] = useState({});
+    const [commentsOpen, setCommentsOpen] = useState({});
+    const [commentInputs, setCommentInputs] = useState({});
+    const [commentsLoading, setCommentsLoading] = useState({});
+    const [currentPage, setCurrentPage] = useState(1);
 
 
     // ========================================
@@ -61,6 +76,10 @@ function Home() {
         loadData();
 
     }, []);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [posts.length]);
 
 
     // ========================================
@@ -185,6 +204,130 @@ function Home() {
 
     }
 
+    async function handleToggleLike(postId) {
+
+        try {
+
+            const result = await toggleLike(postId);
+
+            setPosts((prevPosts) =>
+                prevPosts.map((post) =>
+                    post.postId === postId
+                        ? { ...post, likes: result.likes }
+                        : post
+                )
+            );
+
+        } catch (error) {
+
+            console.error("Erro ao fazer like:", error);
+
+            setError(
+                "Não foi possível atualizar o like."
+            );
+
+        }
+
+    }
+
+    async function handleToggleComments(postId) {
+
+        const willOpen = !commentsOpen[postId];
+
+        setCommentsOpen((prev) => ({
+            ...prev,
+            [postId]: willOpen
+        }));
+
+        if (!willOpen || commentsByPost[postId]) {
+            return;
+        }
+
+        try {
+
+            setCommentsLoading((prev) => ({
+                ...prev,
+                [postId]: true
+            }));
+
+            const comments = await getComments(postId);
+
+            setCommentsByPost((prev) => ({
+                ...prev,
+                [postId]: comments
+            }));
+
+        } catch (error) {
+
+            console.error("Erro ao carregar comentários:", error);
+
+            setError(
+                "Não foi possível carregar os comentários."
+            );
+
+        } finally {
+
+            setCommentsLoading((prev) => ({
+                ...prev,
+                [postId]: false
+            }));
+
+        }
+
+    }
+
+    async function handleCreateComment(postId) {
+
+        const content = (commentInputs[postId] || "").trim();
+
+        if (!content) {
+            return;
+        }
+
+        try {
+
+            const createdComment = await createComment(postId, content);
+
+            setCommentsByPost((prev) => ({
+                ...prev,
+                [postId]: [...(prev[postId] || []), createdComment]
+            }));
+
+            setCommentInputs((prev) => ({
+                ...prev,
+                [postId]: ""
+            }));
+
+            setPosts((prevPosts) =>
+                prevPosts.map((post) =>
+                    post.postId === postId
+                        ? { ...post, comments: post.comments + 1 }
+                        : post
+                )
+            );
+
+        } catch (error) {
+
+            console.error("Erro ao criar comentário:", error);
+
+            setError(
+                "Não foi possível criar o comentário."
+            );
+
+        }
+
+    }
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(posts.length / POSTS_PER_PAGE)
+    );
+
+    const paginatedPosts = posts.slice(
+        (currentPage - 1) * POSTS_PER_PAGE,
+        currentPage * POSTS_PER_PAGE
+    );
+
 
     return (
 
@@ -292,7 +435,7 @@ function Home() {
                     POSTS
                 ======================================== */}
 
-                {posts.map((post) => (
+                {paginatedPosts.map((post) => (
 
                     <div
                         className="post"
@@ -434,19 +577,108 @@ function Home() {
 
                         <div className="post-actions">
 
-                            <button>
+                            <button
+                                onClick={() =>
+                                    handleToggleLike(post.postId)
+                                }
+                            >
                                 ❤️ {post.likes}
                             </button>
 
-                            <button>
+                            <button
+                                onClick={() =>
+                                    handleToggleComments(post.postId)
+                                }
+                            >
                                 💬 {post.comments}
                             </button>
 
                         </div>
 
+                        {commentsOpen[post.postId] && (
+                            <div className="comments-section">
+
+                                <div className="create-comment">
+                                    <input
+                                        type="text"
+                                        placeholder="Escreve um comentário..."
+                                        value={commentInputs[post.postId] || ""}
+                                        onChange={(e) =>
+                                            setCommentInputs((prev) => ({
+                                                ...prev,
+                                                [post.postId]: e.target.value
+                                            }))
+                                        }
+                                    />
+
+                                    <button
+                                        onClick={() =>
+                                            handleCreateComment(post.postId)
+                                        }
+                                    >
+                                        Comentar
+                                    </button>
+                                </div>
+
+                                {commentsLoading[post.postId] && (
+                                    <p className="comments-status">
+                                        A carregar comentários...
+                                    </p>
+                                )}
+
+                                {!commentsLoading[post.postId] &&
+                                    (commentsByPost[post.postId]?.length > 0 ? (
+                                        <ul className="comments-list">
+                                            {commentsByPost[post.postId].map((comment) => (
+                                                <li
+                                                    key={comment.commentId}
+                                                    className="comment-item"
+                                                >
+                                                    <strong>{comment.username}</strong>
+                                                    <span>{comment.content}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="comments-status">
+                                            Ainda não há comentários.
+                                        </p>
+                                    ))}
+
+                            </div>
+                        )}
+
                     </div>
 
                 ))}
+
+                {!loading && !error && posts.length > 0 && (
+                    <div className="pagination">
+                        <button
+                            onClick={() =>
+                                setCurrentPage((prev) => Math.max(1, prev - 1))
+                            }
+                            disabled={currentPage === 1}
+                        >
+                            Anterior
+                        </button>
+
+                        <span>
+                            Página {currentPage} de {totalPages}
+                        </span>
+
+                        <button
+                            onClick={() =>
+                                setCurrentPage((prev) =>
+                                    Math.min(totalPages, prev + 1)
+                                )
+                            }
+                            disabled={currentPage === totalPages}
+                        >
+                            Seguinte
+                        </button>
+                    </div>
+                )}
 
             </main>
 

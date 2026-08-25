@@ -30,3 +30,27 @@ export async function deletePost(id) {
 
     await api.delete(`/Posts/${id}`);
 }
+
+export async function toggleLike(postId) {
+
+    const response = await api.post(`/Likes/${postId}`);
+
+    return response.data;
+}
+
+export async function getComments(postId) {
+
+    const response = await api.get(`/Comments/post/${postId}`);
+
+    return response.data;
+}
+
+export async function createComment(postId, content) {
+
+    const response = await api.post("/Comments", {
+        postId,
+        content
+    });
+
+    return response.data;
+}
