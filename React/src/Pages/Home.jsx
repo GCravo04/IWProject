@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "../Css/Home.css";
 
 import { getPosts, createPost, updatePost, deletePost } from "../API/post";
-import { getProfile } from "../API/users";
+import { getProfile, getUsers } from "../API/users";
 
 import { Link } from "react-router-dom";
 
@@ -18,6 +18,10 @@ function Home() {
 
     const [editingPostId, setEditingPostId] = useState(null);
     const [editingContent, setEditingContent] = useState("");
+    const [allUsers, setAllUsers] = useState([]);
+    const [searchText, setSearchText] = useState("");
+    const [showUserSearch, setShowUserSearch] = useState(false);
+    const [usersLoading, setUsersLoading] = useState(false);
 
 
     // ========================================
@@ -185,6 +189,48 @@ function Home() {
 
     }
 
+    async function handleToggleUserSearch() {
+
+        const open = !showUserSearch;
+
+        setShowUserSearch(open);
+
+        if (!open || allUsers.length > 0) {
+            return;
+        }
+
+        try {
+
+            setUsersLoading(true);
+
+            const usersData = await getUsers();
+
+            setAllUsers(usersData);
+
+        } catch (error) {
+
+            console.error("Erro ao carregar utilizadores:", error);
+
+            setError(
+                "Não foi possível carregar os utilizadores."
+            );
+
+        } finally {
+
+            setUsersLoading(false);
+
+        }
+
+    }
+
+    const filteredUsers = allUsers
+        .filter((user) => user.userId !== currentUserId)
+        .filter((user) =>
+            user.username
+                .toLowerCase()
+                .includes(searchText.toLowerCase())
+        );
+
 
     return (
 
@@ -198,6 +244,48 @@ function Home() {
             <aside className="left-sidebar">
 
                 <h2>Social</h2>
+
+                <button
+                    className="search-users-btn"
+                    onClick={handleToggleUserSearch}
+                >
+                    {showUserSearch ? "Fechar pesquisa" : "Pesquisar utilizadores"}
+                </button>
+
+                {showUserSearch && (
+                    <div className="user-search-panel">
+                        <input
+                            type="text"
+                            placeholder="Procurar por username..."
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                        />
+
+                        {usersLoading && (
+                            <p className="user-search-status">
+                                A carregar utilizadores...
+                            </p>
+                        )}
+
+                        {!usersLoading && (
+                            <ul className="user-search-results">
+                                {filteredUsers.length === 0 ? (
+                                    <li className="user-search-status">
+                                        Sem resultados.
+                                    </li>
+                                ) : (
+                                    filteredUsers.map((user) => (
+                                        <li key={user.userId}>
+                                            <Link to={`/users/${user.userId}`}>
+                                                {user.username}
+                                            </Link>
+                                        </li>
+                                    ))
+                                )}
+                            </ul>
+                        )}
+                    </div>
+                )}
 
                 <ul>
 
