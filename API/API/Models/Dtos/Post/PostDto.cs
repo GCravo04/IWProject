@@ -8,6 +8,8 @@ public class PostDto
 
     public string Username { get; set; } = string.Empty;
 
+    public string? UserProfileImageUrl { get; set; }
+
     public string Content { get; set; } = string.Empty;
 
     public string? ImageUrl { get; set; }

@@ -1,8 +1,37 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { getProfile } from "../API/users";
 
 function NavBar() {
 
     const token = localStorage.getItem("token");
+    const [profileImageUrl, setProfileImageUrl] = useState("");
+
+    useEffect(() => {
+
+        async function loadProfileImage() {
+
+            if (!token) {
+                setProfileImageUrl("");
+                return;
+            }
+
+            try {
+
+                const profile = await getProfile();
+                setProfileImageUrl(profile.profileImageUrl || "");
+
+            } catch (error) {
+
+                console.error("Erro ao carregar perfil na navbar:", error);
+
+            }
+
+        }
+
+        loadProfileImage();
+
+    }, [token]);
 
     return (
 
@@ -37,7 +66,10 @@ function NavBar() {
                             className="profile-link"
                         >
                             <img
-                                src="https://placehold.co/80"
+                                src={
+                                    profileImageUrl ||
+                                    "https://placehold.co/80"
+                                }
                                 alt=""
                             />
 

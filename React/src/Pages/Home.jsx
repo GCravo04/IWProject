@@ -306,7 +306,7 @@ function Home() {
 
                             <img
                                 src={
-                                    post.imageUrl ||
+                                    post.userProfileImageUrl ||
                                     "https://placehold.co/45"
                                 }
                                 alt=""
