@@ -6,6 +6,7 @@ import Home from "../Pages/Home";
 import Login from "../Pages/Login";
 import Register from "../Pages/Register";
 import Profile from "../Pages/Profile";
+import Admin from "../Pages/Admin";
 
 function AppRoutes() {
     return (
@@ -33,6 +34,11 @@ function AppRoutes() {
             <Route
                 path="/register"
                 element={<Register />}
+            />
+
+            <Route
+                path="/admin"
+                element={<Admin />}
             />
 
         </Routes>

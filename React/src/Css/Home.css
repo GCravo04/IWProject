@@ -183,6 +183,367 @@ body{
 
 }
 
+<<<<<<< Updated upstream
+=======
+.comments-section{
+
+    margin-top:14px;
+
+    border-top:1px solid #e5e7eb;
+
+    padding-top:14px;
+
+}
+
+.create-comment{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-bottom:10px;
+
+}
+
+.create-comment input{
+
+    flex:1;
+
+    border:1px solid #d1d5db;
+
+    border-radius:8px;
+
+    padding:10px;
+
+}
+
+.create-comment button{
+
+    border:none;
+
+    border-radius:8px;
+
+    padding:10px 14px;
+
+    background:#2563eb;
+
+    color:white;
+
+    cursor:pointer;
+
+}
+
+.comments-list{
+
+    list-style:none;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:8px;
+
+}
+
+.comment-item{
+
+    background:#f8fafc;
+
+    border:1px solid #e2e8f0;
+
+    border-radius:8px;
+
+    padding:10px;
+
+}
+
+.comment-item strong{
+
+    display:block;
+
+    margin-bottom:4px;
+
+}
+
+.comments-status{
+
+    color:#64748b;
+
+    font-size:14px;
+
+}
+
+.pagination{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:14px;
+
+    background:white;
+
+    border-radius:12px;
+
+    padding:14px;
+
+}
+
+.pagination button{
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#2563eb;
+
+    color:white;
+
+    padding:8px 12px;
+
+    cursor:pointer;
+
+}
+
+.pagination button:disabled{
+
+    background:#cbd5e1;
+
+    cursor:not-allowed;
+
+}
+
+.admin-login-page{
+
+    min-height:100vh;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:#f3f4f6;
+
+    padding:24px;
+
+}
+
+.admin-login-card,
+.admin-page{
+
+    background:white;
+
+    border-radius:16px;
+
+    box-shadow:0 10px 30px rgba(15, 23, 42, 0.08);
+
+    padding:24px;
+
+    width:min(90vw, 760px);
+
+}
+
+.admin-login-card h2{
+
+    margin-bottom:8px;
+
+}
+
+.admin-login-form{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+    margin-top:20px;
+
+}
+
+.admin-login-form input,
+.admin-form textarea,
+.admin-form input{
+
+    width:100%;
+
+    border:1px solid #d1d5db;
+
+    border-radius:10px;
+
+    padding:12px 14px;
+
+    font:inherit;
+
+}
+
+.admin-login-form button,
+.admin-form button,
+.admin-post-actions button,
+.admin-logout-btn{
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#2563eb;
+
+    color:white;
+
+    padding:10px 14px;
+
+    cursor:pointer;
+
+    font:inherit;
+
+}
+
+.admin-back-link{
+
+    display:inline-block;
+
+    margin-top:16px;
+
+    color:#2563eb;
+
+    text-decoration:none;
+
+}
+
+.admin-header{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    margin-bottom:20px;
+
+}
+
+.admin-logout-btn{
+
+    background:#ef4444;
+
+}
+
+.admin-form{
+
+    margin-bottom:24px;
+
+}
+
+.admin-form h3,
+.admin-list h3{
+
+    margin-bottom:12px;
+
+}
+
+.admin-form textarea{
+
+    resize:vertical;
+
+    min-height:120px;
+
+    margin-bottom:12px;
+
+}
+
+.admin-form-actions{
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+.secondary-btn,
+.danger-btn{
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:10px 14px;
+
+    cursor:pointer;
+
+    font:inherit;
+
+}
+
+.secondary-btn{
+
+    background:#e5e7eb;
+
+    color:#111827;
+
+}
+
+.danger-btn{
+
+    background:#ef4444;
+
+    color:white;
+
+}
+
+.admin-list ul{
+
+    list-style:none;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+}
+
+.admin-post-item{
+
+    display:flex;
+
+    align-items:flex-start;
+
+    justify-content:space-between;
+
+    gap:12px;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:12px;
+
+    padding:14px;
+
+}
+
+.admin-post-item p{
+
+    margin-top:6px;
+
+    white-space:pre-wrap;
+
+    word-break:break-word;
+
+}
+
+.admin-post-actions{
+
+    display:flex;
+
+    gap:8px;
+
+    flex-shrink:0;
+
+}
+
+>>>>>>> Stashed changes
 .right-sidebar{
 
     background:white;
