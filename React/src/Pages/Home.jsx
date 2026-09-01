@@ -1,16 +1,26 @@
 import { useEffect, useState } from "react";
+
 import "../Css/Home.css";
 
 import {
-    getPosts,
-    createPost,
-    updatePost,
-    deletePost,
-    toggleLike,
-    getComments,
-    createComment
+
+    getPosts,
+
+    createPost,
+
+    updatePost,
+
+    deletePost,
+
+    toggleLike,
+
+    getComments,
+
+    createComment
+
 } from "../API/post";
-import { getProfile } from "../API/users";
+
+import { getProfile, getUsers } from "../API/users";
 
 import { Link } from "react-router-dom";
 
@@ -18,805 +28,1098 @@ const POSTS_PER_PAGE = 5;
 
 function Home() {
 
-    const [posts, setPosts] = useState([]);
-    const [currentUserId, setCurrentUserId] = useState(null);
+    const [posts, setPosts] = useState([]);
 
-    const [content, setContent] = useState("");
+    const [currentUserId, setCurrentUserId] = useState(null);
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const [content, setContent] = useState("");
 
-    const [editingPostId, setEditingPostId] = useState(null);
-    const [editingContent, setEditingContent] = useState("");
-    const [commentsByPost, setCommentsByPost] = useState({});
-    const [commentsOpen, setCommentsOpen] = useState({});
-    const [commentInputs, setCommentInputs] = useState({});
-    const [commentsLoading, setCommentsLoading] = useState({});
-    const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(true);
 
+    const [error, setError] = useState("");
 
-    // ========================================
-    // CARREGAR POSTS + UTILIZADOR
-    // ========================================
+    const [editingPostId, setEditingPostId] = useState(null);
 
-    useEffect(() => {
+    const [editingContent, setEditingContent] = useState("");
 
-        async function loadData() {
+    const [commentsByPost, setCommentsByPost] = useState({});
 
-            try {
+    const [commentsOpen, setCommentsOpen] = useState({});
 
-                const [postsData, profileData] = await Promise.all([
-                    getPosts(),
-                    getProfile()
-                ]);
+    const [commentInputs, setCommentInputs] = useState({});
 
-                setPosts(postsData);
+    const [commentsLoading, setCommentsLoading] = useState({});
 
-                setCurrentUserId(profileData.userId);
+    const [currentPage, setCurrentPage] = useState(1);
 
-                console.log("User logged in:", profileData);
-                console.log("Posts:", postsData);
+    const [showUserSearch, setShowUserSearch] = useState(false);
 
-            } catch (error) {
+    const [allUsers, setAllUsers] = useState([]);
 
-                console.error("Erro ao carregar dados:", error);
+    const [searchText, setSearchText] = useState("");
 
-                setError(
-                    "Não foi possível carregar os dados."
-                );
+    const [usersLoading, setUsersLoading] = useState(false);
 
-            } finally {
 
-                setLoading(false);
 
-            }
+    // ========================================
 
-        }
+    // CARREGAR POSTS + UTILIZADOR
 
-        loadData();
+    // ========================================
 
-    }, []);
+    useEffect(() => {
 
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [posts.length]);
+        async function loadData() {
 
+            try {
 
-    // ========================================
-    // CRIAR POST
-    // ========================================
+                const [postsData, profileData] = await Promise.all([
 
-    async function handleCreatePost() {
+                    getPosts(),
 
-        if (!content.trim()) {
-            return;
-        }
+                    getProfile()
 
-        try {
+                ]);
 
-            const newPost = await createPost({
-                content: content
-            });
+                setPosts(postsData);
 
-            setContent("");
+                setCurrentUserId(profileData.userId);
 
-            // Recarregar posts para garantir
-            // que temos os dados vindos da API
+                console.log("User logged in:", profileData);
 
-            const postsData = await getPosts();
+                console.log("Posts:", postsData);
 
-            setPosts(postsData);
+            } catch (error) {
 
-        } catch (error) {
+                console.error("Erro ao carregar dados:", error);
 
-            console.error("Erro ao criar post:", error);
+                setError(
 
-            setError(
-                "Não foi possível criar o post."
-            );
+                    "Não foi possível carregar os dados."
 
-        }
+                );
 
-    }
+            } finally {
 
+                setLoading(false);
 
-    // ========================================
-    // EDITAR POST
-    // ========================================
+            }
 
-    function handleStartEdit(post) {
+        }
 
-        setEditingPostId(post.postId);
-        setEditingContent(post.content);
+        loadData();
 
-    }
+    }, []);
 
+    useEffect(() => {
 
-    async function handleSaveEdit(postId) {
+        setCurrentPage(1);
 
-        if (!editingContent.trim()) {
-            return;
-        }
+    }, [posts.length]);
 
-        try {
 
-            await updatePost(postId, {
-                content: editingContent
-            });
 
-            setEditingPostId(null);
-            setEditingContent("");
+    // ========================================
 
-            // Atualizar lista
+    // CRIAR POST
 
-            const postsData = await getPosts();
+    // ========================================
 
-            setPosts(postsData);
+    async function handleCreatePost() {
 
-        } catch (error) {
+        if (!content.trim()) {
 
-            console.error("Erro ao editar post:", error);
+            return;
 
-            setError(
-                "Não foi possível editar o post."
-            );
+        }
 
-        }
+        try {
 
-    }
+            const newPost = await createPost({
 
+                content: content
 
-    // ========================================
-    // APAGAR POST
-    // ========================================
+            });
 
-    async function handleDeletePost(postId) {
+            setContent("");
 
-        const confirmDelete = window.confirm(
-            "Tens a certeza que queres apagar este post?"
-        );
+            // Recarregar posts para garantir
 
-        if (!confirmDelete) {
-            return;
-        }
+            // que temos os dados vindos da API
 
-        try {
+            const postsData = await getPosts();
 
-            await deletePost(postId);
+            setPosts(postsData);
 
-            // Remover imediatamente da lista
+        } catch (error) {
 
-            setPosts(
-                posts.filter(
-                    post => post.postId !== postId
-                )
-            );
+            console.error("Erro ao criar post:", error);
 
-        } catch (error) {
+            setError(
 
-            console.error("Erro ao apagar post:", error);
+                "Não foi possível criar o post."
 
-            setError(
-                "Não foi possível apagar o post."
-            );
+            );
 
-        }
+        }
 
-    }
+    }
 
-    async function handleToggleUserSearch() {
 
-        const open = !showUserSearch;
 
-        setShowUserSearch(open);
+    // ========================================
 
-        if (!open || allUsers.length > 0) {
-            return;
-        }
+    // EDITAR POST
 
-        try {
+    // ========================================
 
-            setUsersLoading(true);
+    function handleStartEdit(post) {
 
-            const usersData = await getUsers();
+        setEditingPostId(post.postId);
 
-            setAllUsers(usersData);
+        setEditingContent(post.content);
 
-        } catch (error) {
+    }
 
-            console.error("Erro ao carregar utilizadores:", error);
 
-            setError(
-                "Não foi possível carregar os utilizadores."
-            );
 
-        } finally {
+    async function handleSaveEdit(postId) {
 
-            setUsersLoading(false);
+        if (!editingContent.trim()) {
 
-    async function handleToggleLike(postId) {
+            return;
 
-        try {
+        }
 
-            const result = await toggleLike(postId);
+        try {
 
-            setPosts((prevPosts) =>
-                prevPosts.map((post) =>
-                    post.postId === postId
-                        ? { ...post, likes: result.likes }
-                        : post
-                )
-            );
+            await updatePost(postId, {
 
-        } catch (error) {
+                content: editingContent
 
-            console.error("Erro ao fazer like:", error);
+            });
 
-            setError(
-                "Não foi possível atualizar o like."
-            );
+            setEditingPostId(null);
 
-        }
+            setEditingContent("");
 
-    }
+            // Atualizar lista
 
-    const filteredUsers = allUsers
-        .filter((user) => user.userId !== currentUserId)
-        .filter((user) =>
-            user.username
-                .toLowerCase()
-                .includes(searchText.toLowerCase())
-        );
-    async function handleToggleComments(postId) {
+            const postsData = await getPosts();
 
-        const willOpen = !commentsOpen[postId];
+            setPosts(postsData);
 
-        setCommentsOpen((prev) => ({
-            ...prev,
-            [postId]: willOpen
-        }));
+        } catch (error) {
 
-        if (!willOpen || commentsByPost[postId]) {
-            return;
-        }
+            console.error("Erro ao editar post:", error);
 
-        try {
+            setError(
 
-            setCommentsLoading((prev) => ({
-                ...prev,
-                [postId]: true
-            }));
+                "Não foi possível editar o post."
 
-            const comments = await getComments(postId);
+            );
 
-            setCommentsByPost((prev) => ({
-                ...prev,
-                [postId]: comments
-            }));
+        }
 
-        } catch (error) {
+    }
 
-            console.error("Erro ao carregar comentários:", error);
 
-            setError(
-                "Não foi possível carregar os comentários."
-            );
 
-        } finally {
+    // ========================================
 
-            setCommentsLoading((prev) => ({
-                ...prev,
-                [postId]: false
-            }));
+    // APAGAR POST
 
-        }
+    // ========================================
 
-    }
+    async function handleDeletePost(postId) {
 
-    async function handleCreateComment(postId) {
+        const confirmDelete = window.confirm(
 
-        const content = (commentInputs[postId] || "").trim();
+            "Tens a certeza que queres apagar este post?"
 
-        if (!content) {
-            return;
-        }
+        );
 
-        try {
+        if (!confirmDelete) {
 
-            const createdComment = await createComment(postId, content);
+            return;
 
-            setCommentsByPost((prev) => ({
-                ...prev,
-                [postId]: [...(prev[postId] || []), createdComment]
-            }));
+        }
 
-            setCommentInputs((prev) => ({
-                ...prev,
-                [postId]: ""
-            }));
+        try {
 
-            setPosts((prevPosts) =>
-                prevPosts.map((post) =>
-                    post.postId === postId
-                        ? { ...post, comments: post.comments + 1 }
-                        : post
-                )
-            );
+            await deletePost(postId);
 
-        } catch (error) {
+            // Remover imediatamente da lista
 
-            console.error("Erro ao criar comentário:", error);
+            setPosts(
 
-            setError(
-                "Não foi possível criar o comentário."
-            );
+                posts.filter(
 
-        }
+                    post => post.postId !== postId
 
-    }
+                )
 
-    const totalPages = Math.max(
-        1,
-        Math.ceil(posts.length / POSTS_PER_PAGE)
-    );
+            );
 
-    const paginatedPosts = posts.slice(
-        (currentPage - 1) * POSTS_PER_PAGE,
-        currentPage * POSTS_PER_PAGE
-    );
+        } catch (error) {
 
+            console.error("Erro ao apagar post:", error);
 
-    return (
+            setError(
 
-        <div className="home">
+                "Não foi possível apagar o post."
 
+            );
 
-            {/* ========================================
-                LEFT SIDEBAR
-            ======================================== */}
+        }
 
-            <aside className="left-sidebar">
+    }
 
-                <h2>Social</h2>
+    async function handleToggleUserSearch() {
 
-                <button
-                    className="search-users-btn"
-                    onClick={handleToggleUserSearch}
-                >
-                    {showUserSearch ? "Fechar pesquisa" : "Pesquisar utilizadores"}
-                </button>
+        const open = !showUserSearch;
 
-                {showUserSearch && (
-                    <div className="user-search-panel">
-                        <input
-                            type="text"
-                            placeholder="Procurar por username..."
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                        />
+        setShowUserSearch(open);
 
-                        {usersLoading && (
-                            <p className="user-search-status">
-                                A carregar utilizadores...
-                            </p>
-                        )}
+        if (!open || allUsers.length > 0) {
 
-                        {!usersLoading && (
-                            <ul className="user-search-results">
-                                {filteredUsers.length === 0 ? (
-                                    <li className="user-search-status">
-                                        Sem resultados.
-                                    </li>
-                                ) : (
-                                    filteredUsers.map((user) => (
-                                        <li key={user.userId}>
-                                            <Link to={`/users/${user.userId}`}>
-                                                {user.username}
-                                            </Link>
-                                        </li>
-                                    ))
-                                )}
-                            </ul>
-                        )}
-                    </div>
-                )}
+            return;
 
-                <ul>
+        }
 
-                    <li>
-                        <Link to="/">
-                            🏠 Home
-                        </Link>
-                    </li>
+        try {
 
-                    <li>
-                        <Link to="/profile">
-                            👤 Perfil
-                        </Link>
-                    </li>
+            setUsersLoading(true);
 
-                    <li>
-                        <Link to="/admin">
-                            ⚙️ Backoffice
-                        </Link>
-                    </li>
+            const usersData = await getUsers();
 
-                </ul>
+            setAllUsers(usersData);
 
-            </aside>
+        } catch (error) {
 
+            console.error("Erro ao carregar utilizadores:", error);
 
-            {/* ========================================
-                FEED
-            ======================================== */}
+            setError(
 
-            <main className="feed">
+                "Não foi possível carregar os utilizadores."
 
+            );
 
-                {/* CRIAR POST */}
+        } finally {
 
-                <div className="create-post">
+            setUsersLoading(false);
 
-                    <textarea
-                        value={content}
-                        onChange={(e) =>
-                            setContent(e.target.value)
-                        }
-                        placeholder="O que estás a pensar?"
-                    />
+        }
 
-                    <button
-                        onClick={handleCreatePost}
-                    >
-                        Publicar
-                    </button>
+    }
 
-                </div>
+    async function handleToggleLike(postId) {
 
+        try {
 
-                {/* ERRO */}
+            const result = await toggleLike(postId);
 
-                {error && (
+            setPosts((prevPosts) =>
 
-                    <p className="error">
-                        {error}
-                    </p>
+                prevPosts.map((post) =>
 
-                )}
+                    post.postId === postId
 
+                        ? { ...post, likes: result.likes }
 
-                {/* LOADING */}
+                        : post
 
-                {loading && (
+                )
 
-                    <p>
-                        A carregar posts...
-                    </p>
+            );
 
-                )}
+        } catch (error) {
 
+            console.error("Erro ao fazer like:", error);
 
-                {/* SEM POSTS */}
+            setError(
 
-                {!loading &&
-                    !error &&
-                    posts.length === 0 && (
+                "Não foi possível atualizar o like."
 
-                        <p>
-                            Ainda não existem posts.
-                        </p>
+            );
 
-                    )
-                }
+        }
 
+    }
 
-                {/* ========================================
-                    POSTS
-                ======================================== */}
+    const filteredUsers = allUsers
 
-                {paginatedPosts.map((post) => (
+        .filter((user) => user.userId !== currentUserId)
 
-                    <div
-                        className="post"
-                        key={post.postId}
-                    >
+        .filter((user) =>
 
+            user.username
 
-                        {/* POST HEADER */}
+                .toLowerCase()
 
-                        <div className="post-header">
+                .includes(searchText.toLowerCase())
 
-                            <img
-                                src={
-                                    post.userProfileImageUrl ||
-                                    "https://placehold.co/45"
-                                }
-                                alt=""
-                            />
+        );
 
-                            <div>
+    async function handleToggleComments(postId) {
 
-                                <h3>
-                                    {post.username}
-                                </h3>
+        const willOpen = !commentsOpen[postId];
 
-                                <span>
-                                    {new Date(
-                                        post.createdAt
-                                    ).toLocaleString("pt-PT")}
-                                </span>
+        setCommentsOpen((prev) => ({
 
-                            </div>
+            ...prev,
 
+            [postId]: willOpen
 
-                            {/* =================================
-                                EDIT / DELETE
-                            ================================= */}
+        }));
 
-                            {post.userId === currentUserId && (
+        if (!willOpen || commentsByPost[postId]) {
 
-                                <div className="post-owner-actions">
+            return;
 
-                                    <button
-                                        onClick={() =>
-                                            handleStartEdit(post)
-                                        }
-                                    >
-                                        ✏️
-                                    </button>
+        }
 
-                                    <button
-                                        onClick={() =>
-                                            handleDeletePost(
-                                                post.postId
-                                            )
-                                        }
-                                    >
-                                        🗑️
-                                    </button>
+        try {
 
-                                </div>
+            setCommentsLoading((prev) => ({
 
-                            )}
+                ...prev,
 
-                        </div>
+                [postId]: true
 
+            }));
 
-                        {/* ========================================
-                            EDITAR POST
-                        ======================================== */}
+            const comments = await getComments(postId);
 
-                        {editingPostId === post.postId ? (
+            setCommentsByPost((prev) => ({
 
-                            <div className="edit-post">
+                ...prev,
 
-                                <textarea
-                                    value={editingContent}
-                                    onChange={(e) =>
-                                        setEditingContent(
-                                            e.target.value
-                                        )
-                                    }
-                                />
+                [postId]: comments
 
-                                <div>
+            }));
 
-                                    <button
-                                        onClick={() =>
-                                            handleSaveEdit(
-                                                post.postId
-                                            )
-                                        }
-                                    >
-                                        Guardar
-                                    </button>
+        } catch (error) {
 
-                                    <button
-                                        onClick={() => {
+            console.error("Erro ao carregar comentários:", error);
 
-                                            setEditingPostId(null);
-                                            setEditingContent("");
+            setError(
 
-                                        }}
-                                    >
-                                        Cancelar
-                                    </button>
+                "Não foi possível carregar os comentários."
 
-                                </div>
+            );
 
-                            </div>
+        } finally {
 
-                        ) : (
+            setCommentsLoading((prev) => ({
 
-                            <p>
-                                {post.content}
-                            </p>
+                ...prev,
 
-                        )}
+                [postId]: false
 
+            }));
 
-                        {/* ========================================
-                            IMAGEM
-                        ======================================== */}
+        }
 
-                        {post.imageUrl && (
+    }
 
-                            <img
-                                className="post-image"
-                                src={post.imageUrl}
-                                alt="Imagem do post"
-                            />
+    async function handleCreateComment(postId) {
 
-                        )}
+        const content = (commentInputs[postId] || "").trim();
 
+        if (!content) {
 
-                        {/* ========================================
-                            ACTIONS
-                        ======================================== */}
+            return;
 
-                        <div className="post-actions">
+        }
 
-                            <button
-                                onClick={() =>
-                                    handleToggleLike(post.postId)
-                                }
-                            >
-                                ❤️ {post.likes}
-                            </button>
+        try {
 
-                            <button
-                                onClick={() =>
-                                    handleToggleComments(post.postId)
-                                }
-                            >
-                                💬 {post.comments}
-                            </button>
+            const createdComment = await createComment(postId, content);
 
-                        </div>
+            setCommentsByPost((prev) => ({
 
-                        {commentsOpen[post.postId] && (
-                            <div className="comments-section">
+                ...prev,
 
-                                <div className="create-comment">
-                                    <input
-                                        type="text"
-                                        placeholder="Escreve um comentário..."
-                                        value={commentInputs[post.postId] || ""}
-                                        onChange={(e) =>
-                                            setCommentInputs((prev) => ({
-                                                ...prev,
-                                                [post.postId]: e.target.value
-                                            }))
-                                        }
-                                    />
+                [postId]: [...(prev[postId] || []), createdComment]
 
-                                    <button
-                                        onClick={() =>
-                                            handleCreateComment(post.postId)
-                                        }
-                                    >
-                                        Comentar
-                                    </button>
-                                </div>
+            }));
 
-                                {commentsLoading[post.postId] && (
-                                    <p className="comments-status">
-                                        A carregar comentários...
-                                    </p>
-                                )}
+            setCommentInputs((prev) => ({
 
-                                {!commentsLoading[post.postId] &&
-                                    (commentsByPost[post.postId]?.length > 0 ? (
-                                        <ul className="comments-list">
-                                            {commentsByPost[post.postId].map((comment) => (
-                                                <li
-                                                    key={comment.commentId}
-                                                    className="comment-item"
-                                                >
-                                                    <strong>{comment.username}</strong>
-                                                    <span>{comment.content}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p className="comments-status">
-                                            Ainda não há comentários.
-                                        </p>
-                                    ))}
+                ...prev,
 
-                            </div>
-                        )}
+                [postId]: ""
 
-                    </div>
+            }));
 
-                ))}
+            setPosts((prevPosts) =>
 
-                {!loading && !error && posts.length > 0 && (
-                    <div className="pagination">
-                        <button
-                            onClick={() =>
-                                setCurrentPage((prev) => Math.max(1, prev - 1))
-                            }
-                            disabled={currentPage === 1}
-                        >
-                            Anterior
-                        </button>
+                prevPosts.map((post) =>
 
-                        <span>
-                            Página {currentPage} de {totalPages}
-                        </span>
+                    post.postId === postId
 
-                        <button
-                            onClick={() =>
-                                setCurrentPage((prev) =>
-                                    Math.min(totalPages, prev + 1)
-                                )
-                            }
-                            disabled={currentPage === totalPages}
-                        >
-                            Seguinte
-                        </button>
-                    </div>
-                )}
+                        ? { ...post, comments: post.comments + 1 }
 
-            </main>
+                        : post
 
+                )
 
-            {/* ========================================
-                RIGHT SIDEBAR
-            ======================================== */}
+            );
 
-            <aside className="right-sidebar">
+        } catch (error) {
 
-                <h3>
-                    Quem seguir
-                </h3>
+            console.error("Erro ao criar comentário:", error);
 
+            setError(
 
-                <div className="suggestion">
+                "Não foi possível criar o comentário."
 
-                    <span>
-                        João
-                    </span>
+            );
 
-                    <button>
-                        Seguir
-                    </button>
+        }
 
-                </div>
+    }
 
+    const totalPages = Math.max(
 
-                <div className="suggestion">
+        1,
 
-                    <span>
-                        Ana
-                    </span>
+        Math.ceil(posts.length / POSTS_PER_PAGE)
 
-                    <button>
-                        Seguir
-                    </button>
+    );
 
-                </div>
+    const paginatedPosts = posts.slice(
 
+        (currentPage - 1) * POSTS_PER_PAGE,
 
-                <div className="suggestion">
+        currentPage * POSTS_PER_PAGE
 
-                    <span>
-                        Pedro
-                    </span>
+    );
 
-                    <button>
-                        Seguir
-                    </button>
 
-                </div>
 
-            </aside>
+    return (
 
+        <div className="home">
 
-        </div>
 
-    );
+
+            {/* ========================================*
+
+                LEFT SIDEBAR*
+
+            ======================================== */}
+
+            <aside className="left-sidebar">
+
+                <h2>Social</h2>
+
+                <button
+
+                    className="search-users-btn"
+
+                    onClick={handleToggleUserSearch}
+
+                >
+
+                    {showUserSearch ? "Fechar pesquisa" : "Pesquisar utilizadores"}
+
+                </button>
+
+                {showUserSearch && (
+
+                    <div className="user-search-panel">
+
+                        <input
+
+                            type="text"
+
+                            placeholder="Procurar por username..."
+
+                            value={searchText}
+
+                            onChange={(e) => setSearchText(e.target.value)}
+
+                        />
+
+                        {usersLoading && (
+
+                            <p className="user-search-status">
+
+                                A carregar utilizadores...
+
+                            </p>
+
+                        )}
+
+                        {!usersLoading && (
+
+                            <ul className="user-search-results">
+
+                                {filteredUsers.length === 0 ? (
+
+                                    <li className="user-search-status">
+
+                                        Sem resultados.
+
+                                    </li>
+
+                                ) : (
+
+                                    filteredUsers.map((user) => (
+
+                                        <li key={user.userId}>
+
+                                            <Link to={`/users/${user.userId}`}>
+
+                                                {user.username}
+
+                                            </Link>
+
+                                        </li>
+
+                                    ))
+
+                                )}
+
+                            </ul>
+
+                        )}
+
+                    </div>
+
+                )}
+
+                <ul>
+
+                    <li>
+
+                        <Link to="/">
+
+                            🏠 Home
+
+                        </Link>
+
+                    </li>
+
+                    <li>
+
+                        <Link to="/profile">
+
+                            👤 Perfil
+
+                        </Link>
+
+                    </li>
+
+                    <li>
+
+                        <Link to="/admin">
+
+                            ⚙️ Backoffice
+
+                        </Link>
+
+                    </li>
+
+                </ul>
+
+            </aside>
+
+
+
+            {/* ========================================*
+
+                FEED*
+
+            ======================================== */}
+
+            <main className="feed">
+
+
+
+                {/* CRIAR POST */}
+
+                <div className="create-post">
+
+                    <textarea
+
+                        value={content}
+
+                        onChange={(e) =>
+
+                            setContent(e.target.value)
+
+                        }
+
+                        placeholder="O que estás a pensar?"
+
+                    />
+
+                    <button
+
+                        onClick={handleCreatePost}
+
+                    >
+
+                        Publicar
+
+                    </button>
+
+                </div>
+
+
+
+                {/* ERRO */}
+
+                {error && (
+
+                    <p className="error">
+
+                        {error}
+
+                    </p>
+
+                )}
+
+
+
+                {/* LOADING */}
+
+                {loading && (
+
+                    <p>
+
+                        A carregar posts...
+
+                    </p>
+
+                )}
+
+
+
+                {/* SEM POSTS */}
+
+                {!loading &&
+
+                    !error &&
+
+                    posts.length === 0 && (
+
+                        <p>
+
+                            Ainda não existem posts.
+
+                        </p>
+
+                    )
+
+                }
+
+
+
+                {/* ========================================*
+
+                    POSTS*
+
+                ======================================== */}
+
+                {paginatedPosts.map((post) => (
+
+                    <div
+
+                        className="post"
+
+                        key={post.postId}
+
+                    >
+
+
+
+                        {/* POST HEADER */}
+
+                        <div className="post-header">
+
+                            <img
+
+                                src={
+
+                                    post.userProfileImageUrl ||
+
+                                    "https://placehold.co/45"
+
+                                }
+
+                                alt=""
+
+                            />
+
+                            <div>
+
+                                <h3>
+
+                                    {post.username}
+
+                                </h3>
+
+                                <span>
+
+                                    {new Date(
+
+                                        post.createdAt
+
+                                    ).toLocaleString("pt-PT")}
+
+                                </span>
+
+                            </div>
+
+
+
+                            {/* =================================*
+
+                                EDIT / DELETE*
+
+                            ================================= */}
+
+                            {post.userId === currentUserId && (
+
+                                <div className="post-owner-actions">
+
+                                    <button
+
+                                        onClick={() =>
+
+                                            handleStartEdit(post)
+
+                                        }
+
+                                    >
+
+                                        ✏️
+
+                                    </button>
+
+                                    <button
+
+                                        onClick={() =>
+
+                                            handleDeletePost(
+
+                                                post.postId
+
+                                            )
+
+                                        }
+
+                                    >
+
+                                        🗑️
+
+                                    </button>
+
+                                </div>
+
+                            )}
+
+                        </div>
+
+
+
+                        {/* ========================================*
+
+                            EDITAR POST*
+
+                        ======================================== */}
+
+                        {editingPostId === post.postId ? (
+
+                            <div className="edit-post">
+
+                                <textarea
+
+                                    value={editingContent}
+
+                                    onChange={(e) =>
+
+                                        setEditingContent(
+
+                                            e.target.value
+
+                                        )
+
+                                    }
+
+                                />
+
+                                <div>
+
+                                    <button
+
+                                        onClick={() =>
+
+                                            handleSaveEdit(
+
+                                                post.postId
+
+                                            )
+
+                                        }
+
+                                    >
+
+                                        Guardar
+
+                                    </button>
+
+                                    <button
+
+                                        onClick={() => {
+
+                                            setEditingPostId(null);
+
+                                            setEditingContent("");
+
+                                        }}
+
+                                    >
+
+                                        Cancelar
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        ) : (
+
+                            <p>
+
+                                {post.content}
+
+                            </p>
+
+                        )}
+
+
+
+                        {/* ========================================*
+
+                            IMAGEM*
+
+                        ======================================== */}
+
+                        {post.imageUrl && (
+
+                            <img
+
+                                className="post-image"
+
+                                src={post.imageUrl}
+
+                                alt="Imagem do post"
+
+                            />
+
+                        )}
+
+
+
+                        {/* ========================================*
+
+                            ACTIONS*
+
+                        ======================================== */}
+
+                        <div className="post-actions">
+
+                            <button
+
+                                onClick={() =>
+
+                                    handleToggleLike(post.postId)
+
+                                }
+
+                            >
+
+                                ❤️ {post.likes}
+
+                            </button>
+
+                            <button
+
+                                onClick={() =>
+
+                                    handleToggleComments(post.postId)
+
+                                }
+
+                            >
+
+                                💬 {post.comments}
+
+                            </button>
+
+                        </div>
+
+                        {commentsOpen[post.postId] && (
+
+                            <div className="comments-section">
+
+                                <div className="create-comment">
+
+                                    <input
+
+                                        type="text"
+
+                                        placeholder="Escreve um comentário..."
+
+                                        value={commentInputs[post.postId] || ""}
+
+                                        onChange={(e) =>
+
+                                            setCommentInputs((prev) => ({
+
+                                                ...prev,
+
+                                                [post.postId]: e.target.value
+
+                                            }))
+
+                                        }
+
+                                    />
+
+                                    <button
+
+                                        onClick={() =>
+
+                                            handleCreateComment(post.postId)
+
+                                        }
+
+                                    >
+
+                                        Comentar
+
+                                    </button>
+
+                                </div>
+
+                                {commentsLoading[post.postId] && (
+
+                                    <p className="comments-status">
+
+                                        A carregar comentários...
+
+                                    </p>
+
+                                )}
+
+                                {!commentsLoading[post.postId] &&
+
+                                    (commentsByPost[post.postId]?.length > 0 ? (
+
+                                        <ul className="comments-list">
+
+                                            {commentsByPost[post.postId].map((comment) => (
+
+                                                <li
+
+                                                    key={comment.commentId}
+
+                                                    className="comment-item"
+
+                                                >
+
+                                                    <strong>{comment.username}</strong>
+
+                                                    <span>{comment.content}</span>
+
+                                                </li>
+
+                                            ))}
+
+                                        </ul>
+
+                                    ) : (
+
+                                        <p className="comments-status">
+
+                                            Ainda não há comentários.
+
+                                        </p>
+
+                                    ))}
+
+                            </div>
+
+                        )}
+
+                    </div>
+
+                ))}
+
+                {!loading && !error && posts.length > 0 && (
+
+                    <div className="pagination">
+
+                        <button
+
+                            onClick={() =>
+
+                                setCurrentPage((prev) => Math.max(1, prev - 1))
+
+                            }
+
+                            disabled={currentPage === 1}
+
+                        >
+
+                            Anterior
+
+                        </button>
+
+                        <span>
+
+                            Página {currentPage} de {totalPages}
+
+                        </span>
+
+                        <button
+
+                            onClick={() =>
+
+                                setCurrentPage((prev) =>
+
+                                    Math.min(totalPages, prev + 1)
+
+                                )
+
+                            }
+
+                            disabled={currentPage === totalPages}
+
+                        >
+
+                            Seguinte
+
+                        </button>
+
+                    </div>
+
+                )}
+
+            </main>
+          
+
+        </div>
+
+    );
 
 }
 
