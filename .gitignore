@@ -103,3 +103,4 @@ appsettings.Development.json
 *.bak
 *.swp
 *.orig
+API/API/Social.db
