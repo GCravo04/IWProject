@@ -436,8 +436,8 @@ function Home() {
                     </li>
 
                     <li>
-                        <Link to="/settings">
-                            ⚙️ Definições
+                        <Link to="/admin">
+                            ⚙️ Backoffice
                         </Link>
                     </li>
 
